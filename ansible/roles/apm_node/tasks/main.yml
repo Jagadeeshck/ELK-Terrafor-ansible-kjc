@@ -2,7 +2,7 @@
 - name: Download APM Server from S3
   aws_s3:
     bucket: "{{ s3_binaries_bucket }}"
-    object: "apm-server-7.10.0-linux-x86_64.tar.gz"
+    object: "apm-server-{{ elasticsearch_version }}-linux-x86_64.tar.gz"
     dest: "/tmp/apm-server.tar.gz"
     mode: get
 
@@ -15,11 +15,11 @@
 - name: Configure APM Server
   template:
     src: apm-server.yml.j2
-    dest: "/opt/elastic/apm-server-7.10.0-linux-x86_64/apm-server.yml"
+    dest: "/opt/elastic/apm-server-{{ elasticsearch_version }}-linux-x86_64/apm-server.yml"
     mode: '0644'
   notify: restart apm-server
 
 - name: Start APM Server
-  command: "/opt/elastic/apm-server-7.10.0-linux-x86_64/apm-server -e &"
+  command: "/opt/elastic/apm-server-{{ elasticsearch_version }}-linux-x86_64/apm-server -e &"
   args:
-    creates: "/opt/elastic/apm-server-7.10.0-linux-x86_64/logs/apm-server.log"
+    creates: "/opt/elastic/apm-server-{{ elasticsearch_version }}-linux-x86_64/logs/apm-server.log"

@@ -2,7 +2,7 @@
 - name: Download Elasticsearch from S3
   aws_s3:
     bucket: "{{ s3_binaries_bucket }}"
-    object: "elasticsearch-7.10.0-linux-x86_64.tar.gz"
+    object: "elasticsearch-{{ elasticsearch_version }}-linux-x86_64.tar.gz"
     dest: "/tmp/elasticsearch.tar.gz"
     mode: get
 
@@ -15,11 +15,18 @@
 - name: Configure Elasticsearch for ML Node
   template:
     src: elasticsearch.yml.j2
-    dest: "/opt/elastic/elasticsearch-7.10.0/config/elasticsearch.yml"
+    dest: "/opt/elastic/elasticsearch-{{ elasticsearch_version }}/config/elasticsearch.yml"
+    mode: '0644'
+  notify: restart elasticsearch
+
+- name: Configure JVM options for ML Node
+  template:
+    src: jvm.options.j2
+    dest: "/opt/elastic/elasticsearch-{{ elasticsearch_version }}/config/jvm.options"
     mode: '0644'
   notify: restart elasticsearch
 
 - name: Start Elasticsearch
-  command: "/opt/elastic/elasticsearch-7.10.0/bin/elasticsearch -d"
+  command: "/opt/elastic/elasticsearch-{{ elasticsearch_version }}/bin/elasticsearch -d"
   args:
     creates: "/opt/elastic/logs/{{ cluster_name }}.log"

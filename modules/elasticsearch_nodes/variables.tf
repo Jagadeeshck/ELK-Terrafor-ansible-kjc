@@ -13,3 +13,4 @@ variable "snapshot_bucket" { type = string }
 variable "os_type" { type = string }
 variable "root_volume_size" { type = number }
 variable "data_volume_size" { type = number }
+variable "elasticsearch_version" { type = string }

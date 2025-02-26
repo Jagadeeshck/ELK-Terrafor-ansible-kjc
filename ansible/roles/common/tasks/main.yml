@@ -6,6 +6,7 @@
   loop:
     - parted
     - xfsprogs
+    - java-11-openjdk  # Required for Elasticsearch JVM
 
 - name: Create XFS filesystem on /opt/elastic volume
   filesystem:
@@ -68,3 +69,16 @@
     fstype: xfs
     state: mounted
   when: "'nvme' in ansible_devices"
+
+- name: Download Elastic Agent from S3
+  aws_s3:
+    bucket: "{{ s3_binaries_bucket }}"
+    object: "elastic-agent-{{ elasticsearch_version }}-linux-x86_64.tar.gz"
+    dest: "/tmp/elastic-agent.tar.gz"
+    mode: get
+
+- name: Extract Elastic Agent
+  unarchive:
+    src: "/tmp/elastic-agent.tar.gz"
+    dest: "/opt/elastic"
+    remote_src: yes

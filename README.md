@@ -21,3 +21,23 @@ This repository contains Terraform and Ansible code to deploy Elasticsearch clus
    ```bash
    git clone <repository-url>
    cd elasticsearch-infra
+
+
+# S3 Preparation:
+Upload binaries to kjc-elasticsearch-binaries-<region>:
+
+   ```bash
+aws s3 cp elasticsearch-7.10.0-linux-x86_64.tar.gz s3://kjc-elasticsearch-binaries-us-east-1/
+aws s3 cp kibana-7.10.0-linux-x86_64.tar.gz s3://kjc-elasticsearch-binaries-us-east-1/
+
+# Repeat for other components and versions:
+
+## For "latest", create a symbolic link or copy the latest version:
+
+# terraform.tfvars
+elasticsearch_version = "7.10.0"  # Or "latest"
+
+Notes
+JVM Customization: Adjust heap sizes (-Xms, -Xmx) in jvm.options.j2 based on your instance types (e.g., t3.medium might need smaller heaps).
+Latest Version: Ensure the S3 bucket has a *-latest-linux-x86_64.tar.gz file for each component if using the default latest.
+Fleet Configuration: Fleet nodes run Elasticsearch with the fleet role, but agent configuration is deferred until needed.

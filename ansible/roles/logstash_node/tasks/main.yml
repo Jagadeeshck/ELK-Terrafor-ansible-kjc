@@ -2,7 +2,7 @@
 - name: Download Logstash from S3
   aws_s3:
     bucket: "{{ s3_binaries_bucket }}"
-    object: "logstash-7.10.0-linux-x86_64.tar.gz"
+    object: "logstash-{{ elasticsearch_version }}-linux-x86_64.tar.gz"
     dest: "/tmp/logstash.tar.gz"
     mode: get
 
@@ -15,11 +15,11 @@
 - name: Configure Logstash
   template:
     src: logstash.yml.j2
-    dest: "/opt/elastic/logstash-7.10.0/config/logstash.yml"
+    dest: "/opt/elastic/logstash-{{ elasticsearch_version }}/config/logstash.yml"
     mode: '0644'
   notify: restart logstash
 
 - name: Start Logstash
-  command: "/opt/elastic/logstash-7.10.0/bin/logstash -f /opt/elastic/logstash-7.10.0/config/logstash.yml &"
+  command: "/opt/elastic/logstash-{{ elasticsearch_version }}/bin/logstash -f /opt/elastic/logstash-{{ elasticsearch_version }}/config/logstash.yml &"
   args:
-    creates: "/opt/elastic/logstash-7.10.0/logs/logstash.log"
+    creates: "/opt/elastic/logstash-{{ elasticsearch_version }}/logs/logstash.log"

@@ -20,6 +20,12 @@ variable "cross_account_id" {
   default     = ""
 }
 
+variable "elasticsearch_version" {
+  description = "Elasticsearch version to use (e.g., '7.10.0', '8.5.0'); defaults to latest from S3 if not specified"
+  type        = string
+  default     = "latest"
+}
+
 variable "business_clusters" {
   type = map(object({
     enable_monitoring = bool

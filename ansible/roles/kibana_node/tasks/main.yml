@@ -2,7 +2,7 @@
 - name: Download Kibana from S3
   aws_s3:
     bucket: "{{ s3_binaries_bucket }}"
-    object: "kibana-7.10.0-linux-x86_64.tar.gz"
+    object: "kibana-{{ elasticsearch_version }}-linux-x86_64.tar.gz"
     dest: "/tmp/kibana.tar.gz"
     mode: get
 
@@ -15,11 +15,11 @@
 - name: Configure Kibana
   template:
     src: kibana.yml.j2
-    dest: "/opt/elastic/kibana-7.10.0-linux-x86_64/config/kibana.yml"
+    dest: "/opt/elastic/kibana-{{ elasticsearch_version }}-linux-x86_64/config/kibana.yml"
     mode: '0644'
   notify: restart kibana
 
 - name: Start Kibana
-  command: "/opt/elastic/kibana-7.10.0-linux-x86_64/bin/kibana --allow-root &"
+  command: "/opt/elastic/kibana-{{ elasticsearch_version }}-linux-x86_64/bin/kibana --allow-root &"
   args:
-    creates: "/opt/elastic/kibana-7.10.0-linux-x86_64/logs/kibana.log"
+    creates: "/opt/elastic/kibana-{{ elasticsearch_version }}-linux-x86_64/logs/kibana.log"
