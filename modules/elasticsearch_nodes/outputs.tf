@@ -22,7 +22,9 @@ output "kibana_instances" {
 }
 
 output "fleet_endpoint" {
-  value = lookup(local.node_types, "fleet", null) != null && local.node_types["fleet"].config.count > 1 ? 
-    "fleet-monitoring-cluster.kjc.infotech.net" : 
-    (lookup(local.node_types, "fleet", null) != null ? aws_instance.nodes["fleet-0"].private_ip_address : "")
+  value = lookup(local.node_types, "fleet", null) != null ? (
+    local.node_types["fleet"].config.count > 1 ? 
+      "fleet-monitoring-cluster.kjc.infotech.net" : 
+      aws_instance.nodes["fleet-0"].private_ip_address
+  ) : ""
 }
