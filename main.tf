@@ -205,8 +205,8 @@ module "monitoring_lb" {
 }
 
 resource "local_file" "ansible_inventory" {
-  filename = "./ansible/inventory/hosts.yml"
-  content  = templatefile("./templates/hosts.yml.tmpl", {
+  filename = "${path.module}/ansible/inventory/hosts.yml"
+  content  = templatefile("${path.module}/templates/hosts.yml.tmpl", {
     business_clusters  = module.business_clusters
     monitoring_cluster = module.monitoring_cluster
     business_lbs       = module.business_lb
