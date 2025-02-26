@@ -34,53 +34,38 @@ locals {
     "rhel"          = "ami-rhel-8-latest"   # Replace with actual AMI ID
     "amazon-linux"  = "ami-0c55b159cbfafe1f0" # Amazon Linux 2
   }
-}
-
-resource "aws_ebs_volume" "elastic_install" {
-  for_each = { for role, config in local.node_types : role => config.config.count }
-  count    = each.value
-  
-  availability_zone = local.node_types[each.key].azs[count.index % length(local.node_types[each.key].azs)]
-  size              = 50
-  type              = "gp3"
-}
-
-resource "aws_ebs_volume" "elastic_logs" {
-  for_each = { for role, config in local.node_types : role => config.config.count }
-  count    = each.value
-  
-  availability_zone = local.node_types[each.key].azs[count.index % length(local.node_types[each.key].azs)]
-  size              = 50
-  type              = "gp3"
-}
-
-resource "aws_ebs_volume" "elastic_data" {
-  for_each = { for role, config in local.node_types : role => config.config.count if !contains(["i3", "c5d", "m5d"], split(".", local.node_types[each.key].config.instance_type)[0]) }
-  count    = each.value
-  
-  availability_zone = local.node_types[each.key].azs[count.index % length(local.node_types[each.key].azs)]
-  size              = var.data_volume_size
-  type              = "gp3"
+  # Flatten node instances into a map for for_each
+  instances = flatten([
+    for role, details in local.node_types : [
+      for i in range(details.config.count) : {
+        key           = "${role}-${i}"
+        role          = role
+        instance_type = details.config.instance_type
+        az            = details.azs[i % length(details.azs)]
+        subnet_id     = element(var.subnet_ids, index(data.aws_availability_zones.available.names, details.azs[i % length(details.azs)]))
+      }
+    ]
+  ])
+  instance_map = { for inst in local.instances : inst.key => inst }
 }
 
 resource "aws_instance" "nodes" {
-  for_each = local.node_types
-  
-  count             = each.value.config.count
+  for_each = local.instance_map
+
   ami               = local.amis[var.os_type]
-  instance_type     = each.value.config.instance_type
-  subnet_id         = element(var.subnet_ids, index(data.aws_availability_zones.available.names, each.value.azs[count.index % length(each.value.azs)]))
+  instance_type     = each.value.instance_type
+  subnet_id         = each.value.subnet_id
   security_groups   = [aws_security_group.es_nodes.id]
-  availability_zone = each.value.azs[count.index % length(each.value.azs)]
+  availability_zone = each.value.az
   iam_instance_profile = var.iam_instance_profile
-  
+
   root_block_device {
     volume_size = var.root_volume_size
     volume_type = "gp3"
   }
 
   dynamic "ebs_block_device" {
-    for_each = contains(["i3", "c5d", "m5d"], split(".", each.value.config.instance_type)[0]) ? [] : [1]
+    for_each = contains(["i3", "c5d", "m5d"], split(".", each.value.instance_type)[0]) ? [] : [1]
     content {
       device_name = "/dev/sdh"
       volume_size = var.data_volume_size
@@ -89,7 +74,7 @@ resource "aws_instance" "nodes" {
   }
 
   dynamic "ephemeral_block_device" {
-    for_each = contains(["i3", "c5d", "m5d"], split(".", each.value.config.instance_type)[0]) ? [1] : []
+    for_each = contains(["i3", "c5d", "m5d"], split(".", each.value.instance_type)[0]) ? [1] : []
     content {
       device_name = "/dev/nvme1n1"
       virtual_name = "ephemeral0"
@@ -97,36 +82,66 @@ resource "aws_instance" "nodes" {
   }
 
   tags = {
-    Name = "${var.cluster_name}-${each.key}-${count.index}"
-    Role = each.key
+    Name = "${var.cluster_name}-${each.value.role}-${split("-", each.key)[1]}"
+    Role = each.value.role
+  }
+}
+
+resource "aws_ebs_volume" "elastic_install" {
+  for_each = local.instance_map
+
+  availability_zone = each.value.az
+  size              = 50
+  type              = "gp3"
+  tags = {
+    Name = "${var.cluster_name}-${each.value.role}-install-${split("-", each.key)[1]}"
+  }
+}
+
+resource "aws_ebs_volume" "elastic_logs" {
+  for_each = local.instance_map
+
+  availability_zone = each.value.az
+  size              = 50
+  type              = "gp3"
+  tags = {
+    Name = "${var.cluster_name}-${each.value.role}-logs-${split("-", each.key)[1]}"
+  }
+}
+
+resource "aws_ebs_volume" "elastic_data" {
+  for_each = { for key, inst in local.instance_map : key => inst if !contains(["i3", "c5d", "m5d"], split(".", inst.instance_type)[0]) }
+
+  availability_zone = each.value.az
+  size              = var.data_volume_size
+  type              = "gp3"
+  tags = {
+    Name = "${var.cluster_name}-${each.value.role}-data-${split("-", each.key)[1]}"
   }
 }
 
 resource "aws_volume_attachment" "elastic_install" {
-  for_each = { for role, instances in aws_instance.nodes : role => instances[*] }
-  count    = each.value[count.index].count
-  
+  for_each = local.instance_map
+
   device_name = "/dev/sdf"
-  volume_id   = aws_ebs_volume.elastic_install[each.key][count.index].id
-  instance_id = each.value[count.index].id
+  volume_id   = aws_ebs_volume.elastic_install[each.key].id
+  instance_id = aws_instance.nodes[each.key].id
 }
 
 resource "aws_volume_attachment" "elastic_logs" {
-  for_each = { for role, instances in aws_instance.nodes : role => instances[*] }
-  count    = each.value[count.index].count
-  
+  for_each = local.instance_map
+
   device_name = "/dev/sdg"
-  volume_id   = aws_ebs_volume.elastic_logs[each.key][count.index].id
-  instance_id = each.value[count.index].id
+  volume_id   = aws_ebs_volume.elastic_logs[each.key].id
+  instance_id = aws_instance.nodes[each.key].id
 }
 
 resource "aws_volume_attachment" "elastic_data" {
-  for_each = { for role, instances in aws_instance.nodes : role => instances[*] if !contains(["i3", "c5d", "m5d"], split(".", local.node_types[each.key].config.instance_type)[0]) }
-  count    = each.value[count.index].count
-  
+  for_each = { for key, inst in local.instance_map : key => inst if !contains(["i3", "c5d", "m5d"], split(".", inst.instance_type)[0]) }
+
   device_name = "/dev/sdh"
-  volume_id   = aws_ebs_volume.elastic_data[each.key][count.index].id
-  instance_id = each.value[count.index].id
+  volume_id   = aws_ebs_volume.elastic_data[each.key].id
+  instance_id = aws_instance.nodes[each.key].id
 }
 
 data "aws_availability_zones" "available" {
@@ -137,9 +152,9 @@ resource "local_file" "elastic_agent_config" {
   count    = var.enable_monitoring ? 1 : 0
   filename = "${path.module}/../../../ansible/${var.cluster_name}-elastic-agent.yml"
   content  = templatefile("${path.module}/templates/elastic-agent.yml.tmpl", {
-    cluster_name       = var.cluster_name
-    cluster_type       = var.cluster_type
+    cluster_name        = var.cluster_name
+    cluster_type        = var.cluster_type
     monitoring_endpoint = var.monitoring_endpoint
-    node_roles         = join(",", keys(local.node_types))
+    node_roles          = join(",", keys(local.node_types))
   })
 }

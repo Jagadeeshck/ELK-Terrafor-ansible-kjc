@@ -1,28 +1,28 @@
 output "instances" {
   value = {
-    for role, instances in aws_instance.nodes : role => [
-      for idx, inst in instances : {
-        id         = inst.id
-        private_ip = inst.private_ip_address
+    for role, details in local.node_types : role => [
+      for i in range(details.config.count) : {
+        id         = aws_instance.nodes["${role}-${i}"].id
+        private_ip = aws_instance.nodes["${role}-${i}"].private_ip_address
       }
     ]
   }
 }
 
 output "master_instances" {
-  value = [for inst in aws_instance.nodes["master"] : inst]
+  value = [for i in range(local.node_types["master"].config.count) : aws_instance.nodes["master-${i}"]]
 }
 
 output "data_instances" {
-  value = [for inst in aws_instance.nodes["data"] : inst]
+  value = [for i in range(local.node_types["data"].config.count) : aws_instance.nodes["data-${i}"]]
 }
 
 output "kibana_instances" {
-  value = [for inst in aws_instance.nodes["kibana"] : inst]
+  value = [for i in range(local.node_types["kibana"].config.count) : aws_instance.nodes["kibana-${i}"]]
 }
 
 output "fleet_endpoint" {
-  value = length(aws_instance.nodes["fleet"]) > 1 ? 
+  value = lookup(local.node_types, "fleet", null) != null && local.node_types["fleet"].config.count > 1 ? 
     "fleet-monitoring-cluster.kjc.infotech.net" : 
-    aws_instance.nodes["fleet"][0].private_ip_address
+    (lookup(local.node_types, "fleet", null) != null ? aws_instance.nodes["fleet-0"].private_ip_address : "")
 }
