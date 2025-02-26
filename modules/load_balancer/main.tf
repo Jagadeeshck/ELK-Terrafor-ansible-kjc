@@ -40,11 +40,18 @@ resource "aws_lb_target_group" "targets" {
 }
 
 resource "aws_lb_target_group_attachment" "targets" {
-  for_each = { for role, instances in var.target_instances : role => instances
-    for idx, instance in instances : "${role}-${idx}" => instance }
-  
-  target_group_arn = aws_lb_target_group.targets[split("-", each.key)[0]].arn
-  target_id        = each.value.id
+  for_each = flatten([
+    for role, instances in var.target_instances : [
+      for idx, instance in instances : {
+        key     = "${role}-${idx}"
+        role    = role
+        instance = instance
+      }
+    ]
+  ])
+
+  target_group_arn = aws_lb_target_group.targets[each.value.role].arn
+  target_id        = each.value.instance.id
   port             = 9200
 }
 
