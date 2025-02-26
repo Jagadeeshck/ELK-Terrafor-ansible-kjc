@@ -1,0 +1,39 @@
+---
+all:
+  children:
+    business_clusters:
+      children:
+        <% for cluster_name, cluster in business_clusters %>
+        {{ cluster_name }}:
+          hosts:
+            <% for role, instances in cluster.instances %>
+            <% for instance in instances %>
+            {{ instance.private_ip }}:
+              ansible_host: {{ instance.private_ip }}
+              role: {{ role }}
+              cluster_name: {{ cluster_name }}
+              enable_monitoring: {{ cluster.enable_monitoring }}
+              snapshot_bucket: "kjc-es-snapshots-{{ cluster_name }}-{{ aws_region }}"
+              <% if business_lbs[cluster_name] && business_lbs[cluster_name].lb_endpoints[role] %>
+              lb_endpoint: {{ business_lbs[cluster_name].lb_endpoints[role] }}
+              <% endif %>
+            <% endfor %>
+            <% endfor %>
+        <% endfor %>
+    monitoring_cluster:
+      hosts:
+        <% for role, instances in monitoring_cluster.instances %>
+        <% for instance in instances %>
+        {{ instance.private_ip }}:
+          ansible_host: {{ instance.private_ip }}
+          role: {{ role }}
+          cluster_name: monitoring-cluster
+          enable_monitoring: true
+          snapshot_bucket: "kjc-es-snapshots-monitoring-cluster-{{ aws_region }}"
+          <% if monitoring_lb.lb_endpoints[role] %>
+          lb_endpoint: {{ monitoring_lb.lb_endpoints[role] }}
+          <% endif %>
+        <% endfor %>
+        <% endfor %>
+  vars:
+    s3_binaries_bucket: {{ s3_binaries_bucket }}
