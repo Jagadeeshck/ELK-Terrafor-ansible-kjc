@@ -9,12 +9,20 @@ data "aws_route53_zone" "main" {
 
 resource "aws_s3_bucket" "binaries" {
   bucket = "kjc-elasticsearch-binaries-${var.aws_region}"
-  acl    = "private"
 }
 
+resource "aws_s3_bucket_acl" "binaries_acl" {
+  bucket = aws_s3_bucket.binaries.id
+  acl    = "private"
+}
 resource "aws_s3_bucket" "snapshots" {
   for_each = merge(var.business_clusters, { "monitoring-cluster" = var.monitoring_config })
   bucket   = "kjc-es-snapshots-${each.key}-${var.aws_region}"
+}
+
+resource "aws_s3_bucket_acl" "snapshots_acl" {
+  for_each = aws_s3_bucket.snapshots
+  bucket   = each.value.id
   acl      = "private"
 }
 
@@ -181,6 +189,7 @@ module "business_lb" {
   target_instances = { for role, instances in each.value : role => instances if length(instances) > 1 }
   dns_zone_id      = data.aws_route53_zone.main.zone_id
   domain_name      = "kjc.infotech.net"
+  certificate_arn  = "arn:aws:acm:${var.aws_region}:ACCOUNT_ID:certificate/CERTIFICATE_ID"  # Replace with valid ARN
 }
 
 module "monitoring_lb" {
@@ -192,6 +201,7 @@ module "monitoring_lb" {
   target_instances = { for role, instances in module.monitoring_cluster.instances : role => instances if length(instances) > 1 }
   dns_zone_id      = data.aws_route53_zone.main.zone_id
   domain_name      = "kjc.infotech.net"
+  certificate_arn  = "arn:aws:acm:${var.aws_region}:ACCOUNT_ID:certificate/CERTIFICATE_ID"  # Replace with valid ARN
 }
 
 resource "local_file" "ansible_inventory" {

@@ -61,7 +61,7 @@ resource "aws_lb_listener" "https" {
   load_balancer_arn = aws_lb.role_lb[each.key].arn
   port              = 443
   protocol          = "HTTPS"
-  certificate_arn   = "arn:aws:acm:region:account:certificate/xxx" # Replace with actual ARN
+  certificate_arn   = var.certificate_arn  # Use variable instead of placeholder
   
   default_action {
     type             = "forward"

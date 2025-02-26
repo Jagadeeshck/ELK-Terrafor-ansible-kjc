@@ -2,12 +2,12 @@
 fleet:
   enabled: true
   server:
-    host: "${cluster_name == 'monitoring-cluster' ? monitoring_endpoint : '0.0.0.0'}"
+    host: "${cluster_name == "monitoring-cluster" ? monitoring_endpoint : "0.0.0.0"}"
     port: 8220
 outputs:
   default:
     type: elasticsearch
-    hosts: ["${hostvars | selectattr('role', 'equalto', 'data') | map(attribute='ansible_host') | first}:9200"]
+    hosts: ["${hostvars | selectattr("role", "equalto", "data") | map(attribute="ansible_host") | first}:9200"]
 monitoring:
   enabled: true
   logs: true
