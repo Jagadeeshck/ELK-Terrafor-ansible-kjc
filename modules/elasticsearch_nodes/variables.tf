@@ -1,0 +1,15 @@
+variable "cluster_name" { type = string }
+variable "vpc_id" { type = string }
+variable "subnet_ids" { type = list(string) }
+variable "cluster_type" { type = string }
+variable "node_configs" { type = any }
+variable "enable_monitoring" { type = bool }
+variable "monitoring_endpoint" { type = string }
+variable "aws_region" { type = string }
+variable "az_count" { type = number }
+variable "az_mappings" { type = any }
+variable "iam_instance_profile" { type = string }
+variable "snapshot_bucket" { type = string }
+variable "os_type" { type = string }
+variable "root_volume_size" { type = number }
+variable "data_volume_size" { type = number }

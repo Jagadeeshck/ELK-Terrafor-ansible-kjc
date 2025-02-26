@@ -1,0 +1,70 @@
+---
+- name: Ensure filesystem dependencies are installed
+  package:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - parted
+    - xfsprogs
+
+- name: Create XFS filesystem on /opt/elastic volume
+  filesystem:
+    fstype: xfs
+    dev: /dev/xvdf
+
+- name: Create XFS filesystem on /opt/elastic/logs volume
+  filesystem:
+    fstype: xfs
+    dev: /dev/xvdg
+
+- name: Create XFS filesystem on /opt/elastic/data volume (EBS)
+  filesystem:
+    fstype: xfs
+    dev: /dev/xvdh
+  when: "'nvme' not in ansible_devices"
+
+- name: Create XFS filesystem on /opt/elastic/data volume (Instance Store)
+  filesystem:
+    fstype: xfs
+    dev: /dev/nvme1n1
+  when: "'nvme' in ansible_devices"
+
+- name: Create mount points
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - /opt/elastic
+    - /opt/elastic/logs
+    - /opt/elastic/data
+
+- name: Mount /opt/elastic volume
+  mount:
+    path: /opt/elastic
+    src: /dev/xvdf
+    fstype: xfs
+    state: mounted
+
+- name: Mount /opt/elastic/logs volume
+  mount:
+    path: /opt/elastic/logs
+    src: /dev/xvdg
+    fstype: xfs
+    state: mounted
+
+- name: Mount /opt/elastic/data volume (EBS)
+  mount:
+    path: /opt/elastic/data
+    src: /dev/xvdh
+    fstype: xfs
+    state: mounted
+  when: "'nvme' not in ansible_devices"
+
+- name: Mount /opt/elastic/data volume (Instance Store)
+  mount:
+    path: /opt/elastic/data
+    src: /dev/nvme1n1
+    fstype: xfs
+    state: mounted
+  when: "'nvme' in ansible_devices"

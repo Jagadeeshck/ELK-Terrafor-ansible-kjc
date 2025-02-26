@@ -1,0 +1,4 @@
+apm-server:
+  host: "0.0.0.0:8200"
+output.elasticsearch:
+  hosts: ["{{ hostvars | selectattr('role', 'equalto', 'data') | map(attribute='ansible_host') | first }}:9200"]

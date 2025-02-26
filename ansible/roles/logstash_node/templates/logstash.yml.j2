@@ -1,0 +1,5 @@
+http.host: "0.0.0.0"
+http.port: 9600
+pipeline:
+  - input { beats { port => 5044 } }
+  - output { elasticsearch { hosts => ["{{ hostvars | selectattr('role', 'equalto', 'data') | map(attribute='ansible_host') | first }}:9200"] } }

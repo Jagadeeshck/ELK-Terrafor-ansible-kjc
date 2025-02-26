@@ -1,0 +1,10 @@
+cluster.name: {{ cluster_name }}
+node.name: {{ ansible_host }}-master
+node.roles: [ master ]
+network.host: 0.0.0.0
+http.port: 9200
+discovery.seed_hosts: {{ hostvars | selectattr('role', 'equalto', 'master') | map(attribute='ansible_host') | join(',') }}
+cluster.initial_master_nodes: {{ hostvars | selectattr('role', 'equalto', 'master') | map(attribute='ansible_host') | join(',') }}
+path.data: /opt/elastic/data
+path.logs: /opt/elastic/logs
+path.repo: ["/snapshots"]

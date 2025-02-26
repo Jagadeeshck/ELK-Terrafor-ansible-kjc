@@ -1,0 +1,25 @@
+---
+- name: Download Elasticsearch from S3
+  aws_s3:
+    bucket: "{{ s3_binaries_bucket }}"
+    object: "elasticsearch-7.10.0-linux-x86_64.tar.gz"
+    dest: "/tmp/elasticsearch.tar.gz"
+    mode: get
+
+- name: Extract Elasticsearch
+  unarchive:
+    src: "/tmp/elasticsearch.tar.gz"
+    dest: "/opt/elastic"
+    remote_src: yes
+
+- name: Configure Elasticsearch for Data Node
+  template:
+    src: elasticsearch.yml.j2
+    dest: "/opt/elastic/elasticsearch-7.10.0/config/elasticsearch.yml"
+    mode: '0644'
+  notify: restart elasticsearch
+
+- name: Start Elasticsearch
+  command: "/opt/elastic/elasticsearch-7.10.0/bin/elasticsearch -d"
+  args:
+    creates: "/opt/elastic/logs/{{ cluster_name }}.log"
