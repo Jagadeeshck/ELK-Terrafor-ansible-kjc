@@ -4,7 +4,10 @@ variable "subnet_ids" { type = list(string) }
 variable "cluster_type" { type = string }
 variable "node_configs" { type = any }
 variable "enable_monitoring" { type = bool }
-variable "monitoring_endpoint" { type = string }
+variable "monitoring_endpoint" {
+  type    = string
+  default = ""  # Default to empty string to make it optional
+}
 variable "aws_region" { type = string }
 variable "az_count" { type = number }
 variable "az_mappings" { type = any }
