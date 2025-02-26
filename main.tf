@@ -205,13 +205,14 @@ module "monitoring_lb" {
 }
 
 resource "local_file" "ansible_inventory" {
-  filename = "${path.module}/ansible/inventory/hosts.yml"
-  content  = templatefile("${path.module}/templates/hosts.yml.tmpl", {
+  filename = "./ansible/inventory/hosts.yml"
+  content  = templatefile("./templates/hosts.yml.tmpl", {
     business_clusters  = module.business_clusters
     monitoring_cluster = module.monitoring_cluster
     business_lbs       = module.business_lb
     monitoring_lb      = module.monitoring_lb
     s3_binaries_bucket = aws_s3_bucket.binaries.bucket
+    aws_region         = var.aws_region
   })
 }
 
