@@ -22,9 +22,9 @@ output "kibana_instances" {
 }
 
 output "fleet_endpoint" {
-  value = lookup(local.node_types, "fleet", null) != null ? (
-    local.node_types["fleet"].config.count > 1 ? 
-      "fleet-monitoring-cluster.kjc.infotech.net" : 
-      aws_instance.nodes["fleet-0"].private_ip
-  ) : ""
+  value = contains(keys(local.node_types), "fleet") && local.node_types["fleet"].config.count > 1 ? "fleet-monitoring-cluster.kjc.infotech.net" : (contains(keys(local.node_types), "fleet") ? aws_instance.nodes["fleet-0"].private_ip : "")
+}
+
+output "security_group_id" {
+  value = aws_security_group.es_nodes.id
 }

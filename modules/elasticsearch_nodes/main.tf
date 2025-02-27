@@ -20,15 +20,17 @@ locals {
     "data"   = { config = var.node_configs.data_nodes, azs = var.az_mappings.data_nodes }
     "kibana" = { config = var.node_configs.kibana_nodes, azs = var.az_mappings.kibana_nodes }
     "ml"     = { config = var.node_configs.ml_nodes, azs = var.az_mappings.ml_nodes }
-  } : {
-    "master"   = { config = var.node_configs.master_nodes, azs = var.az_mappings.master_nodes }
-    "data"     = { config = var.node_configs.data_nodes, azs = var.az_mappings.data_nodes }
-    "kibana"   = { config = var.node_configs.kibana_nodes, azs = var.az_mappings.kibana_nodes }
-    "logstash" = { config = var.node_configs.logstash_nodes, azs = var.az_mappings.logstash_nodes }
-    "apm"      = { config = var.node_configs.apm_nodes, azs = var.az_mappings.apm_nodes }
-    "fleet"    = { config = var.node_configs.fleet_nodes, azs = var.az_mappings.fleet_nodes }
-    "ml"       = { config = var.node_configs.ml_nodes, azs = var.az_mappings.ml_nodes }
-  }
+  } : merge(
+    {
+      "master"   = { config = var.node_configs.master_nodes, azs = var.az_mappings.master_nodes }
+      "data"     = { config = var.node_configs.data_nodes, azs = var.az_mappings.data_nodes }
+      "kibana"   = { config = var.node_configs.kibana_nodes, azs = var.az_mappings.kibana_nodes }
+      "ml"       = { config = var.node_configs.ml_nodes, azs = var.az_mappings.ml_nodes }
+    },
+    var.node_configs.logstash_nodes != null ? { "logstash" = { config = var.node_configs.logstash_nodes, azs = var.az_mappings.logstash_nodes } } : {},
+    var.node_configs.apm_nodes != null ? { "apm" = { config = var.node_configs.apm_nodes, azs = var.az_mappings.apm_nodes } } : {},
+    var.node_configs.fleet_nodes != null ? { "fleet" = { config = var.node_configs.fleet_nodes, azs = var.az_mappings.fleet_nodes } } : {}
+  )
   amis = {
     "centos"        = "ami-centos-7-latest" # Replace with actual AMI ID
     "rhel"          = "ami-rhel-8-latest"   # Replace with actual AMI ID
@@ -42,6 +44,10 @@ locals {
         instance_type = details.config.instance_type
         az            = details.azs[i % length(details.azs)]
         subnet_id     = element(var.subnet_ids, index(data.aws_availability_zones.available.names, details.azs[i % length(details.azs)]))
+        root_size     = details.config.root_size
+        elastic_size  = details.config.elastic_size
+        logs_size     = details.config.logs_size
+        data_size     = details.config.data_size
       }
     ]
   ])
@@ -59,7 +65,7 @@ resource "aws_instance" "nodes" {
   iam_instance_profile = var.iam_instance_profile
 
   root_block_device {
-    volume_size = var.root_volume_size
+    volume_size = each.value.root_size
     volume_type = "gp3"
   }
 
@@ -67,7 +73,7 @@ resource "aws_instance" "nodes" {
     for_each = contains(["i3", "c5d", "m5d"], split(".", each.value.instance_type)[0]) ? [] : [1]
     content {
       device_name = "/dev/sdh"
-      volume_size = var.data_volume_size
+      volume_size = each.value.data_size
       volume_type = "gp3"
     }
   }
@@ -90,7 +96,7 @@ resource "aws_ebs_volume" "elastic_install" {
   for_each = local.instance_map
 
   availability_zone = each.value.az
-  size              = 50
+  size              = each.value.elastic_size
   type              = "gp3"
   tags = {
     Name = "${var.cluster_name}-${each.value.role}-install-${split("-", each.key)[1]}"
@@ -101,7 +107,7 @@ resource "aws_ebs_volume" "elastic_logs" {
   for_each = local.instance_map
 
   availability_zone = each.value.az
-  size              = 50
+  size              = each.value.logs_size
   type              = "gp3"
   tags = {
     Name = "${var.cluster_name}-${each.value.role}-logs-${split("-", each.key)[1]}"
@@ -112,7 +118,7 @@ resource "aws_ebs_volume" "elastic_data" {
   for_each = { for key, inst in local.instance_map : key => inst if !contains(["i3", "c5d", "m5d"], split(".", inst.instance_type)[0]) }
 
   availability_zone = each.value.az
-  size              = var.data_volume_size
+  size              = each.value.data_size
   type              = "gp3"
   tags = {
     Name = "${var.cluster_name}-${each.value.role}-data-${split("-", each.key)[1]}"

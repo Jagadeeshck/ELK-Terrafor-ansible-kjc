@@ -30,10 +30,38 @@ variable "business_clusters" {
   type = map(object({
     enable_monitoring = bool
     node_configs = object({
-      master_nodes = object({ count = number, instance_type = string })
-      data_nodes   = object({ count = number, instance_type = string })
-      kibana_nodes = object({ count = number, instance_type = string })
-      ml_nodes     = object({ count = number, instance_type = string })
+      master_nodes = object({
+        count         = number
+        instance_type = string
+        root_size     = number # GB
+        elastic_size  = number # GB
+        logs_size     = number # GB
+        data_size     = number # GB
+      })
+      data_nodes = object({
+        count         = number
+        instance_type = string
+        root_size     = number # GB
+        elastic_size  = number # GB
+        logs_size     = number # GB
+        data_size     = number # GB
+      })
+      kibana_nodes = object({
+        count         = number
+        instance_type = string
+        root_size     = number # GB
+        elastic_size  = number # GB
+        logs_size     = number # GB
+        data_size     = number # GB
+      })
+      ml_nodes = object({
+        count         = number
+        instance_type = string
+        root_size     = number # GB
+        elastic_size  = number # GB
+        logs_size     = number # GB
+        data_size     = number # GB
+      })
     })
     az_mappings = object({
       master_nodes = list(string)
@@ -41,18 +69,44 @@ variable "business_clusters" {
       kibana_nodes = list(string)
       ml_nodes     = list(string)
     })
-    os_type          = string
-    root_volume_size = number
-    data_volume_size = number
+    os_type = string
   }))
   default = {
-    "business-1" = {
+    "fincrimes" = {
       enable_monitoring = true
       node_configs = {
-        master_nodes = { count = 3, instance_type = "t3.medium" }
-        data_nodes   = { count = 3, instance_type = "i3.large" }
-        kibana_nodes = { count = 1, instance_type = "t3.medium" }
-        ml_nodes     = { count = 2, instance_type = "t3.large" }
+        master_nodes = {
+          count         = 3
+          instance_type = "t3.medium"
+          root_size     = 100
+          elastic_size  = 50
+          logs_size     = 50
+          data_size     = 200
+        }
+        data_nodes = {
+          count         = 3
+          instance_type = "i3.large"
+          root_size     = 100
+          elastic_size  = 50
+          logs_size     = 50
+          data_size     = 1000
+        }
+        kibana_nodes = {
+          count         = 1
+          instance_type = "t3.medium"
+          root_size     = 100
+          elastic_size  = 50
+          logs_size     = 50
+          data_size     = 200
+        }
+        ml_nodes = {
+          count         = 2
+          instance_type = "t3.large"
+          root_size     = 100
+          elastic_size  = 50
+          logs_size     = 50
+          data_size     = 200
+        }
       }
       az_mappings = {
         master_nodes = ["us-east-1a", "us-east-1b", "us-east-1c"]
@@ -60,9 +114,51 @@ variable "business_clusters" {
         kibana_nodes = ["us-east-1a"]
         ml_nodes     = ["us-east-1b", "us-east-1c"]
       }
-      os_type          = "amazon-linux"
-      root_volume_size = 20
-      data_volume_size = 100
+      os_type = "amazon-linux"
+    }
+    "vectorsearch" = {
+      enable_monitoring = true
+      node_configs = {
+        master_nodes = {
+          count         = 3
+          instance_type = "t3.medium"
+          root_size     = 100
+          elastic_size  = 50
+          logs_size     = 50
+          data_size     = 200
+        }
+        data_nodes = {
+          count         = 4
+          instance_type = "i3.large"
+          root_size     = 100
+          elastic_size  = 50
+          logs_size     = 50
+          data_size     = 1000
+        }
+        kibana_nodes = {
+          count         = 2
+          instance_type = "t3.medium"
+          root_size     = 100
+          elastic_size  = 50
+          logs_size     = 50
+          data_size     = 200
+        }
+        ml_nodes = {
+          count         = 2
+          instance_type = "t3.large"
+          root_size     = 100
+          elastic_size  = 50
+          logs_size     = 50
+          data_size     = 200
+        }
+      }
+      az_mappings = {
+        master_nodes = ["us-east-1a", "us-east-1b", "us-east-1c"]
+        data_nodes   = ["us-east-1a", "us-east-1b", "us-east-1c", "us-east-1d"]
+        kibana_nodes = ["us-east-1a", "us-east-1b"]
+        ml_nodes     = ["us-east-1c", "us-east-1d"]
+      }
+      os_type = "amazon-linux"
     }
   }
 }
@@ -70,13 +166,62 @@ variable "business_clusters" {
 variable "monitoring_config" {
   type = object({
     node_configs = object({
-      master_nodes   = object({ count = number, instance_type = string })
-      data_nodes     = object({ count = number, instance_type = string })
-      kibana_nodes   = object({ count = number, instance_type = string })
-      logstash_nodes = object({ count = number, instance_type = string })
-      apm_nodes      = object({ count = number, instance_type = string })
-      fleet_nodes    = object({ count = number, instance_type = string })
-      ml_nodes       = object({ count = number, instance_type = string })
+      master_nodes = object({
+        count         = number
+        instance_type = string
+        root_size     = number # GB
+        elastic_size  = number # GB
+        logs_size     = number # GB
+        data_size     = number # GB
+      })
+      data_nodes = object({
+        count         = number
+        instance_type = string
+        root_size     = number # GB
+        elastic_size  = number # GB
+        logs_size     = number # GB
+        data_size     = number # GB
+      })
+      kibana_nodes = object({
+        count         = number
+        instance_type = string
+        root_size     = number # GB
+        elastic_size  = number # GB
+        logs_size     = number # GB
+        data_size     = number # GB
+      })
+      logstash_nodes = object({
+        count         = number
+        instance_type = string
+        root_size     = number # GB
+        elastic_size  = number # GB
+        logs_size     = number # GB
+        data_size     = number # GB
+      })
+      apm_nodes = object({
+        count         = number
+        instance_type = string
+        root_size     = number # GB
+        elastic_size  = number # GB
+        logs_size     = number # GB
+        data_size     = number # GB
+      })
+      fleet_nodes = object({
+        count         = number
+        instance_type = string
+        root_size     = number # GB
+        elastic_size  = number # GB
+        logs_size     = number # GB
+        data_size     = number # GB
+      })
+      ml_nodes = object({
+        count         = number
+        instance_type = string
+        root_size     = number # GB
+        elastic_size  = number # GB
+        logs_size     = number # GB
+        data_size     = number # GB
+      })
     })
     az_mappings = object({
       master_nodes   = list(string)
@@ -87,19 +232,66 @@ variable "monitoring_config" {
       fleet_nodes    = list(string)
       ml_nodes       = list(string)
     })
-    os_type          = string
-    root_volume_size = number
-    data_volume_size = number
+    os_type = string
   })
   default = {
     node_configs = {
-      master_nodes   = { count = 3, instance_type = "t3.medium" }
-      data_nodes     = { count = 4, instance_type = "i3.large" }
-      kibana_nodes   = { count = 2, instance_type = "t3.medium" }
-      logstash_nodes = { count = 2, instance_type = "t3.medium" }
-      apm_nodes      = { count = 1, instance_type = "t3.medium" }
-      fleet_nodes    = { count = 1, instance_type = "t3.medium" }
-      ml_nodes       = { count = 2, instance_type = "t3.large" }
+      master_nodes = {
+        count         = 3
+        instance_type = "t3.medium"
+        root_size     = 100
+        elastic_size  = 50
+        logs_size     = 50
+        data_size     = 200
+      }
+      data_nodes = {
+        count         = 4
+        instance_type = "i3.large"
+        root_size     = 100
+        elastic_size  = 50
+        logs_size     = 50
+        data_size     = 1000
+      }
+      kibana_nodes = {
+        count         = 2
+        instance_type = "t3.medium"
+        root_size     = 100
+        elastic_size  = 50
+        logs_size     = 50
+        data_size     = 200
+      }
+      logstash_nodes = {
+        count         = 2
+        instance_type = "t3.medium"
+        root_size     = 100
+        elastic_size  = 50
+        logs_size     = 50
+        data_size     = 200
+      }
+      apm_nodes = {
+        count         = 1
+        instance_type = "t3.medium"
+        root_size     = 100
+        elastic_size  = 50
+        logs_size     = 50
+        data_size     = 200
+      }
+      fleet_nodes = {
+        count         = 1
+        instance_type = "t3.medium"
+        root_size     = 100
+        elastic_size  = 50
+        logs_size     = 50
+        data_size     = 200
+      }
+      ml_nodes = {
+        count         = 2
+        instance_type = "t3.large"
+        root_size     = 100
+        elastic_size  = 50
+        logs_size     = 50
+        data_size     = 200
+      }
     }
     az_mappings = {
       master_nodes   = ["us-east-1a", "us-east-1b", "us-east-1c"]
@@ -110,8 +302,17 @@ variable "monitoring_config" {
       fleet_nodes    = ["us-east-1b"]
       ml_nodes       = ["us-east-1c", "us-east-1d"]
     }
-    os_type          = "amazon-linux"
-    root_volume_size = 20
-    data_volume_size = 100
+    os_type = "amazon-linux"
   }
+}
+variable "certificate_arn" {
+  description = "ARN of the ACM certificate for load balancer HTTPS listeners"
+  type        = string
+  default     = "" # Replace with your actual ARN or override in terraform.tfvars
+}
+
+variable "domain_name" {
+  description = "Domain name for Route 53 hosted zone (e.g., kjc.infotech.net)"
+  type        = string
+  default     = "kjc.infotech.net"
 }

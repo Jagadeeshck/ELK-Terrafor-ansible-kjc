@@ -40,15 +40,15 @@ resource "aws_lb_target_group" "targets" {
 }
 
 resource "aws_lb_target_group_attachment" "targets" {
-  for_each = flatten([
+  for_each = { for item in flatten([
     for role, instances in var.target_instances : [
       for idx, instance in instances : {
-        key     = "${role}-${idx}"
-        role    = role
+        key      = "${role}-${idx}"
+        role     = role
         instance = instance
       }
     ]
-  ])
+  ]) : item.key => item }
 
   target_group_arn = aws_lb_target_group.targets[each.value.role].arn
   target_id        = each.value.instance.id
@@ -61,7 +61,7 @@ resource "aws_lb_listener" "https" {
   load_balancer_arn = aws_lb.role_lb[each.key].arn
   port              = 443
   protocol          = "HTTPS"
-  certificate_arn   = var.certificate_arn  # Use variable instead of placeholder
+  certificate_arn   = var.certificate_arn
   
   default_action {
     type             = "forward"
