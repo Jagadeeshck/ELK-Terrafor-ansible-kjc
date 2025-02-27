@@ -11,5 +11,5 @@ output "private_subnet_ids" {
 }
 
 output "route_table_ids" {
-  value = aws_route_table.private[*].id
+  value = var.is_routable ? [aws_route_table.public[0].id] : aws_route_table.private[*].id
 }

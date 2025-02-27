@@ -1,14 +1,25 @@
 # S3 Buckets for Binaries and Snapshots
 resource "aws_s3_bucket" "binaries" {
   bucket = "kjc-elasticsearch-binaries-${var.aws_region}"
+}
+
+resource "aws_s3_bucket_acl" "binaries" {
+  bucket = aws_s3_bucket.binaries.id
   acl    = "private"
 }
 
 resource "aws_s3_bucket" "snapshots" {
   for_each = merge(var.business_clusters, { "monitoring-cluster" = var.monitoring_config })
   bucket   = "kjc-es-snapshots-${each.key}-${var.aws_region}"
+}
+
+resource "aws_s3_bucket_acl" "snapshots" {
+  for_each = aws_s3_bucket.snapshots
+  bucket   = each.value.id
   acl      = "private"
 }
+
+
 
 # IAM Role for S3 Access
 resource "aws_iam_role" "es_s3_role" {
@@ -111,20 +122,20 @@ module "business_clusters" {
 # Monitoring Cluster
 module "monitoring_cluster" {
   source = "./modules/elasticsearch_nodes"
-  
-  cluster_name        = "monitoring-cluster"
-  vpc_id              = module.non_routable_vpc.vpc_id
-  subnet_ids          = module.non_routable_vpc.private_subnet_ids
-  cluster_type        = "monitoring"
-  node_configs        = var.monitoring_config.node_configs
-  enable_monitoring   = true
-  monitoring_endpoint = "" # Explicitly set to empty string for clarity
-  aws_region          = var.aws_region
-  az_count            = var.az_count
-  az_mappings         = var.monitoring_config.az_mappings
-  iam_instance_profile = aws_iam_instance_profile.es_s3_profile.name
-  snapshot_bucket      = aws_s3_bucket.snapshots["monitoring-cluster"].bucket
-  os_type             = var.monitoring_config.os_type
+
+  cluster_name          = "monitoring-cluster"
+  vpc_id                = module.non_routable_vpc.vpc_id
+  subnet_ids            = module.non_routable_vpc.private_subnet_ids
+  cluster_type          = "monitoring"
+  node_configs          = var.monitoring_config.node_configs
+  enable_monitoring     = true
+  monitoring_endpoint   = "" # Explicitly set to empty string for clarity
+  aws_region            = var.aws_region
+  az_count              = var.az_count
+  az_mappings           = var.monitoring_config.az_mappings
+  iam_instance_profile  = aws_iam_instance_profile.es_s3_profile.name
+  snapshot_bucket       = aws_s3_bucket.snapshots["monitoring-cluster"].bucket
+  os_type               = var.monitoring_config.os_type
   elasticsearch_version = var.elasticsearch_version
 }
 
