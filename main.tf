@@ -212,6 +212,7 @@ resource "local_file" "ansible_inventory" {
     business_lbs       = module.business_lb
     monitoring_lb      = module.monitoring_lb
     s3_binaries_bucket = aws_s3_bucket.binaries.bucket
+    aws_region         = var.aws_region
   })
 }
 

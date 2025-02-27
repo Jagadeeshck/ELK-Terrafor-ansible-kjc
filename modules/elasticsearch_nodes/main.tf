@@ -34,7 +34,6 @@ locals {
     "rhel"          = "ami-rhel-8-latest"   # Replace with actual AMI ID
     "amazon-linux"  = "ami-0c55b159cbfafe1f0" # Amazon Linux 2
   }
-  # Flatten node instances into a map for for_each
   instances = flatten([
     for role, details in local.node_types : [
       for i in range(details.config.count) : {
@@ -146,15 +145,4 @@ resource "aws_volume_attachment" "elastic_data" {
 
 data "aws_availability_zones" "available" {
   state = "available"
-}
-
-resource "local_file" "elastic_agent_config" {
-  count    = var.enable_monitoring ? 1 : 0
-  filename = "${path.module}/../../../ansible/${var.cluster_name}-elastic-agent.yml"
-  content  = templatefile("${path.module}/templates/elastic-agent.yml.tmpl", {
-    cluster_name        = var.cluster_name
-    cluster_type        = var.cluster_type
-    monitoring_endpoint = var.monitoring_endpoint
-    node_roles          = join(",", keys(local.node_types))
-  })
 }

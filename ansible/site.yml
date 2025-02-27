@@ -1,0 +1,48 @@
+---
+- name: Configure Common Setup
+  hosts: all
+  become: true
+  roles:
+    - common
+
+- name: Configure Master Nodes
+  hosts: all:&role_master
+  become: true
+  roles:
+    - master_node
+
+- name: Configure Data Nodes
+  hosts: all:&role_data
+  become: true
+  roles:
+    - data_node
+
+- name: Configure Kibana Nodes
+  hosts: all:&role_kibana
+  become: true
+  roles:
+    - kibana_node
+
+- name: Configure ML Nodes
+  hosts: all:&role_ml
+  become: true
+  roles:
+    - ml_node
+
+- name: Configure Fleet Nodes
+  hosts: all:&role_fleet
+  become: true
+  roles:
+    - fleet_node
+
+- name: Configure APM Nodes
+  hosts: all:&role_apm
+  become: true
+  roles:
+    - apm_node
+
+- name: Configure Logstash Nodes
+  hosts: all:&role_logstash
+  become: true
+  roles:
+    - logstash_node
