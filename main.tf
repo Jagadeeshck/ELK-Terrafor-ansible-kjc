@@ -16,27 +16,27 @@ resource "aws_iam_role" "es_s3_role" {
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
-      Action = "sts:AssumeRole"
-      Effect = "Allow"
+      Action    = "sts:AssumeRole"
+      Effect    = "Allow"
       Principal = { Service = "ec2.amazonaws.com" }
     }]
   })
 }
 
 resource "aws_iam_role_policy" "es_s3_policy" {
-  name   = "es-s3-access-policy"
-  role   = aws_iam_role.es_s3_role.id
+  name = "es-s3-access-policy"
+  role = aws_iam_role.es_s3_role.id
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
       {
-        Effect = "Allow"
-        Action = ["s3:GetObject"]
+        Effect   = "Allow"
+        Action   = ["s3:GetObject"]
         Resource = "${aws_s3_bucket.binaries.arn}/*"
       },
       {
-        Effect = "Allow"
-        Action = ["s3:PutObject", "s3:GetObject", "s3:ListBucket"]
+        Effect   = "Allow"
+        Action   = ["s3:PutObject", "s3:GetObject", "s3:ListBucket"]
         Resource = [for bucket in aws_s3_bucket.snapshots : "${bucket.arn}/*"]
       }
     ]
@@ -88,25 +88,26 @@ resource "aws_iam_role_policy" "cross_account_policy" {
 # Business Clusters
 module "business_clusters" {
   for_each = var.business_clusters
-  
+
   source = "./modules/elasticsearch_nodes"
-  
-  cluster_name        = each.key
-  vpc_id              = module.non_routable_vpc.vpc_id
-  subnet_ids          = module.non_routable_vpc.private_subnet_ids
-  cluster_type        = "business"
-  node_configs        = each.value.node_configs
-  enable_monitoring   = each.value.enable_monitoring
-  monitoring_endpoint = module.monitoring_cluster.fleet_endpoint
-  aws_region          = var.aws_region
-  az_count            = var.az_count
-  az_mappings         = each.value.az_mappings
-  iam_instance_profile = aws_iam_instance_profile.es_s3_profile.name
-  snapshot_bucket      = aws_s3_bucket.snapshots[each.key].bucket
-  os_type             = each.value.os_type
+
+  cluster_name          = each.key
+  vpc_id                = module.non_routable_vpc.vpc_id
+  subnet_ids            = module.non_routable_vpc.private_subnet_ids
+  cluster_type          = "business"
+  node_configs          = each.value.node_configs
+  enable_monitoring     = each.value.enable_monitoring
+  monitoring_endpoint   = module.monitoring_cluster.fleet_endpoint
+  aws_region            = var.aws_region
+  az_count              = var.az_count
+  az_mappings           = each.value.az_mappings
+  iam_instance_profile  = aws_iam_instance_profile.es_s3_profile.name
+  snapshot_bucket       = aws_s3_bucket.snapshots[each.key].bucket
+  os_type               = each.value.os_type
   elasticsearch_version = var.elasticsearch_version
 }
 
+# Monitoring Cluster
 # Monitoring Cluster
 module "monitoring_cluster" {
   source = "./modules/elasticsearch_nodes"
@@ -117,6 +118,7 @@ module "monitoring_cluster" {
   cluster_type        = "monitoring"
   node_configs        = var.monitoring_config.node_configs
   enable_monitoring   = true
+  monitoring_endpoint = "" # Explicitly set to empty string for clarity
   aws_region          = var.aws_region
   az_count            = var.az_count
   az_mappings         = var.monitoring_config.az_mappings
@@ -127,34 +129,38 @@ module "monitoring_cluster" {
 }
 
 # Load Balancers
+# Business Clusters Load Balancers
 module "business_lb" {
   for_each = { for cluster_name, cluster in module.business_clusters : cluster_name => cluster.instances }
-  
+
   source = "./modules/load_balancer"
-  
+
   cluster_name     = each.key
   vpc_id           = module.routable_vpc.vpc_id
   subnet_ids       = module.routable_vpc.public_subnet_ids
   target_instances = { for role, instances in each.value : role => instances if length(instances) > 1 }
   dns_zone_id      = data.aws_route53_zone.main.zone_id
   domain_name      = "kjc.infotech.net"
+  certificate_arn  = var.certificate_arn
 }
 
+# Monitoring Cluster Load Balancer
 module "monitoring_lb" {
   source = "./modules/load_balancer"
-  
+
   cluster_name     = "monitoring-cluster"
   vpc_id           = module.routable_vpc.vpc_id
   subnet_ids       = module.routable_vpc.public_subnet_ids
   target_instances = { for role, instances in module.monitoring_cluster.instances : role => instances if length(instances) > 1 }
   dns_zone_id      = data.aws_route53_zone.main.zone_id
   domain_name      = "kjc.infotech.net"
+  certificate_arn  = var.certificate_arn
 }
 
 # Ansible Configuration
 resource "local_file" "ansible_inventory" {
   filename = "${path.module}/ansible/inventory/hosts.yml"
-  content  = templatefile("${path.module}/templates/hosts.yml.tmpl", {
+  content = templatefile("${path.module}/templates/hosts.yml.tmpl", {
     business_clusters  = module.business_clusters
     monitoring_cluster = module.monitoring_cluster
     business_lbs       = module.business_lb
