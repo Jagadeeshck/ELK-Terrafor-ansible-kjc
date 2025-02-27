@@ -141,30 +141,30 @@ module "monitoring_cluster" {
 
 # Load Balancers
 # Business Clusters Load Balancers
+
 module "business_lb" {
   for_each = { for cluster_name, cluster in module.business_clusters : cluster_name => cluster.instances }
-
+  
   source = "./modules/load_balancer"
-
+  
   cluster_name     = each.key
   vpc_id           = module.routable_vpc.vpc_id
   subnet_ids       = module.routable_vpc.public_subnet_ids
   target_instances = { for role, instances in each.value : role => instances if length(instances) > 1 }
-  dns_zone_id      = data.aws_route53_zone.main.zone_id
-  domain_name      = "kjc.infotech.net"
+  dns_zone_id      = length(data.aws_route53_zone.main) > 0 ? data.aws_route53_zone.main[0].zone_id : null
+  domain_name      = var.domain_name
   certificate_arn  = var.certificate_arn
 }
 
-# Monitoring Cluster Load Balancer
 module "monitoring_lb" {
   source = "./modules/load_balancer"
-
+  
   cluster_name     = "monitoring-cluster"
   vpc_id           = module.routable_vpc.vpc_id
   subnet_ids       = module.routable_vpc.public_subnet_ids
   target_instances = { for role, instances in module.monitoring_cluster.instances : role => instances if length(instances) > 1 }
-  dns_zone_id      = data.aws_route53_zone.main.zone_id
-  domain_name      = "kjc.infotech.net"
+  dns_zone_id      = length(data.aws_route53_zone.main) > 0 ? data.aws_route53_zone.main[0].zone_id : null
+  domain_name      = var.domain_name
   certificate_arn  = var.certificate_arn
 }
 
