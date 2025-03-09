@@ -8,6 +8,6 @@ variable "target_instances" { type = map(list(object({
 variable "dns_zone_id" { type = string }
 variable "domain_name" { type = string }
 variable "certificate_arn" {
+  description = "ARN of the ACM certificate for the ALB listener"
   type        = string
-  description = "ACM certificate ARN for the load balancer listener"
 }

@@ -1,16 +1,16 @@
 module "non_routable_vpc" {
-  source       = "./modules/vpc_network"
-  vpc_name     = "non-routable-vpc"
-  cidr_block   = "10.1.0.0/16"
-  is_routable  = false
-  aws_region   = var.aws_region
-  az_count     = var.az_count
+  source      = "./modules/vpc_network"
+  vpc_name    = "non-routable-vpc"
+  cidr_block  = "10.1.0.0/16"
+  is_routable = false
+  aws_region  = var.aws_region
+  az_count    = var.az_count
 }
 
 resource "aws_vpc_peering_connection" "vpc_peering" {
-  vpc_id        = module.routable_vpc.vpc_id
-  peer_vpc_id   = module.non_routable_vpc.vpc_id
-  auto_accept   = true
+  vpc_id      = module.routable_vpc.vpc_id
+  peer_vpc_id = module.non_routable_vpc.vpc_id
+  auto_accept = true
 }
 
 resource "aws_vpc_endpoint" "s3" {
