@@ -1,0 +1,7 @@
+---
+# Fleet node role to configure Elastic Agent (Fleet) nodes.
+# Currently includes common setup; extend this with actual fleet installation tasks.
+
+- name: Include common role for Fleet nodes
+  import_role:
+    name: common
