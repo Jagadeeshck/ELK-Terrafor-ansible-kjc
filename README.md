@@ -41,3 +41,15 @@ Notes
 JVM Customization: Adjust heap sizes (-Xms, -Xmx) in jvm.options.j2 based on your instance types (e.g., t3.medium might need smaller heaps).
 Latest Version: Ensure the S3 bucket has a *-latest-linux-x86_64.tar.gz file for each component if using the default latest.
 Fleet Configuration: Fleet nodes run Elasticsearch with the fleet role, but agent configuration is deferred until needed.
+
+## Cluster configuration
+
+Cluster definitions for all business clusters and the monitoring/observability cluster are centralized in the `clusters.auto.tfvars` file. This file defines counts, instance types, disk sizes and availability zone mappings for each node role (master, data, Kibana, ML, Logstash, Fleet, APM) per cluster.
+
+To add a new cluster or modify existing clusters:
+
+1. Open `clusters.auto.tfvars` in the repository root.
+2. Copy an existing cluster definition and adjust the values for `enable_monitoring`, `node_configs` and `az_mappings`.
+3. Save the file and run `terraform apply` again to provision the updated infrastructure.
+
+Terraform automatically loads files with a `.auto.tfvars` extension, so no additional `-var-file` flag is required.
