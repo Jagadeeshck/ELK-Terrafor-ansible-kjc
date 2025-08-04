@@ -1,0 +1,57 @@
+---
+# Fleet node role to configure Elastic Agent (Fleet) nodes.
+# This role installs and enrolls Elastic Agent on Fleet-managed nodes.
+# Ensure that the following variables are defined (e.g. in group_vars or inventory):
+# - elastic_agent_version: version of Elastic Agent to install (e.g. "8.14.1")
+# - fleet_manager_url: Fleet manager URL including protocol and port (e.g. "https://fleet-manager.example.com:8220")
+# - fleet_enrollment_token: Enrollment token generated from Kibana Fleet
+# - elastic_agent_install_dir: Directory where the agent will be installed (default "/opt/Elastic")
+
+- name: Include common role for Fleet nodes
+  import_role:
+    name: common
+
+- name: Set default values for fleet variables
+  set_fact:
+    elastic_agent_version: "{{ elastic_agent_version | default('8.14.1') }}"
+    elastic_agent_install_dir: "{{ elastic_agent_install_dir | default('/opt/Elastic') }}"
+    fleet_manager_url: "{{ fleet_manager_url | default('https://fleet-manager.example.com:8220') }}"
+    fleet_enrollment_token: "{{ fleet_enrollment_token | default('CHANGE_ME_ENROLLMENT_TOKEN') }}"
+    elastic_agent_tar: "elastic-agent-{{ elastic_agent_version }}-linux-x86_64.tar.gz"
+    elastic_agent_url: "https://artifacts.elastic.co/downloads/beats/elastic-agent/{{ elastic_agent_tar }}"
+
+- name: Ensure installation directory exists
+  file:
+    path: "{{ elastic_agent_install_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Download Elastic Agent archive
+  get_url:
+    url: "{{ elastic_agent_url }}"
+    dest: "/tmp/{{ elastic_agent_tar }}"
+    mode: '0644'
+  register: download_result
+
+- name: Extract Elastic Agent
+  unarchive:
+    src: "/tmp/{{ elastic_agent_tar }}"
+    dest: "{{ elastic_agent_install_dir }}"
+    remote_src: yes
+  when: download_result.changed
+
+- name: Install Elastic Agent
+  shell: >
+    echo "Y" |
+    {{ elastic_agent_install_dir }}/elastic-agent-{{ elastic_agent_version }}-linux-x86_64/elastic-agent
+    install
+    --url={{ fleet_manager_url }}
+    --enrollment-token={{ fleet_enrollment_token }}
+    --force
+  args:
+    executable: /bin/bash
+
+- name: Remove downloaded archive
+  file:
+    path: "/tmp/{{ elastic_agent_tar }}"
+    state: absent
