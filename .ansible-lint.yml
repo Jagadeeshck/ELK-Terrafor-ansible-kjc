@@ -1,0 +1,6 @@
+---
+skip_list:
+  - fqcn[action]
+  - fqcn[action-core]
+  - yaml[truthy]
+  - yaml[new-line-at-end-of-file]
