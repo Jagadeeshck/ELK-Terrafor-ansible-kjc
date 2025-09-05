@@ -129,7 +129,3 @@ PRs are welcome! Please open issues or reply on [discussions](../../discussions)
 - [Jagadeeshck](https://github.com/Jagadeeshck)
 
 ***
-
-**You can copy and paste this template into your README.md. Want me to suggest content for any specific section or help with badges, diagrams, or FAQ items?**
-
-[1](https://github.com/Jagadeeshck/ansible-freeipa)
