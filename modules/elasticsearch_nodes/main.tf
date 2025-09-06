@@ -20,21 +20,21 @@ locals {
     "data"   = { config = var.node_configs.data_nodes, azs = var.az_mappings.data_nodes }
     "kibana" = { config = var.node_configs.kibana_nodes, azs = var.az_mappings.kibana_nodes }
     "ml"     = { config = var.node_configs.ml_nodes, azs = var.az_mappings.ml_nodes }
-  } : merge(
+    } : merge(
     {
-      "master"   = { config = var.node_configs.master_nodes, azs = var.az_mappings.master_nodes }
-      "data"     = { config = var.node_configs.data_nodes, azs = var.az_mappings.data_nodes }
-      "kibana"   = { config = var.node_configs.kibana_nodes, azs = var.az_mappings.kibana_nodes }
-      "ml"       = { config = var.node_configs.ml_nodes, azs = var.az_mappings.ml_nodes }
+      "master" = { config = var.node_configs.master_nodes, azs = var.az_mappings.master_nodes }
+      "data"   = { config = var.node_configs.data_nodes, azs = var.az_mappings.data_nodes }
+      "kibana" = { config = var.node_configs.kibana_nodes, azs = var.az_mappings.kibana_nodes }
+      "ml"     = { config = var.node_configs.ml_nodes, azs = var.az_mappings.ml_nodes }
     },
     var.node_configs.logstash_nodes != null ? { "logstash" = { config = var.node_configs.logstash_nodes, azs = var.az_mappings.logstash_nodes } } : {},
     var.node_configs.apm_nodes != null ? { "apm" = { config = var.node_configs.apm_nodes, azs = var.az_mappings.apm_nodes } } : {},
     var.node_configs.fleet_nodes != null ? { "fleet" = { config = var.node_configs.fleet_nodes, azs = var.az_mappings.fleet_nodes } } : {}
   )
   amis = {
-    "centos"        = "ami-centos-7-latest" # Replace with actual AMI ID
-    "rhel"          = "ami-rhel-8-latest"   # Replace with actual AMI ID
-    "amazon-linux"  = "ami-0c55b159cbfafe1f0" # Amazon Linux 2
+    "centos"       = "ami-centos-7-latest"   # Replace with actual AMI ID
+    "rhel"         = "ami-rhel-8-latest"     # Replace with actual AMI ID
+    "amazon-linux" = "ami-0c55b159cbfafe1f0" # Amazon Linux 2
   }
   # Ensure var.os_type is one of the above keys: "centos", "rhel", or "amazon-linux"
   instances = flatten([
@@ -58,11 +58,11 @@ locals {
 resource "aws_instance" "nodes" {
   for_each = local.instance_map
 
-  ami               = local.amis[var.os_type]
-  instance_type     = each.value.instance_type
-  subnet_id         = each.value.subnet_id
-  security_groups   = [aws_security_group.es_nodes.id]
-  availability_zone = each.value.az
+  ami                  = local.amis[var.os_type]
+  instance_type        = each.value.instance_type
+  subnet_id            = each.value.subnet_id
+  security_groups      = [aws_security_group.es_nodes.id]
+  availability_zone    = each.value.az
   iam_instance_profile = var.iam_instance_profile
 
   root_block_device {
@@ -82,7 +82,7 @@ resource "aws_instance" "nodes" {
   dynamic "ephemeral_block_device" {
     for_each = contains(["i3", "c5d", "m5d"], split(".", each.value.instance_type)[0]) ? [1] : []
     content {
-      device_name = "/dev/nvme1n1"
+      device_name  = "/dev/nvme1n1"
       virtual_name = "ephemeral0"
     }
   }

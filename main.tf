@@ -152,10 +152,10 @@ module "business_lb" {
   vpc_id           = module.routable_vpc.vpc_id
   subnet_ids       = module.routable_vpc.public_subnet_ids
   target_instances = { for role, instances in each.value : role => instances if length(instances) > 1 }
-# dns_zone_id      = var.domain_name != "" && length(data.aws_route53_zone.main) > 0 ? data.aws_route53_zone.main[0].zone_id : null
-  dns_zone_id      = var.domain_name != "" ? data.aws_route53_zone.main.zone_id : null
-  domain_name      = var.domain_name
-  certificate_arn  = var.certificate_arn
+  # dns_zone_id      = var.domain_name != "" && length(data.aws_route53_zone.main) > 0 ? data.aws_route53_zone.main[0].zone_id : null
+  dns_zone_id     = var.domain_name != "" ? data.aws_route53_zone.main.zone_id : null
+  domain_name     = var.domain_name
+  certificate_arn = var.certificate_arn
 }
 
 # Monitoring Cluster Load Balancer
@@ -167,9 +167,9 @@ module "monitoring_lb" {
   subnet_ids       = module.routable_vpc.public_subnet_ids
   target_instances = { for role, instances in module.monitoring_cluster.instances : role => instances if length(instances) > 1 }
   #dns_zone_id      = var.domain_name != "" && length(data.aws_route53_zone.main) > 0 ? data.aws_route53_zone.main[0].zone_id : null
-  dns_zone_id      = var.domain_name != "" ? data.aws_route53_zone.main.zone_id : null
-  domain_name      = var.domain_name
-  certificate_arn  = var.certificate_arn
+  dns_zone_id     = var.domain_name != "" ? data.aws_route53_zone.main.zone_id : null
+  domain_name     = var.domain_name
+  certificate_arn = var.certificate_arn
 }
 
 
