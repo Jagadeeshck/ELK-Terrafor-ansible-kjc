@@ -1,6 +1,6 @@
 ---
 - name: Download Logstash from S3
-  amazon.aws.amazon.aws.s3_object:
+  amazon.aws.s3_object:
     bucket: "{{ s3_binaries_bucket }}"
     object: "logstash-{{ elasticsearch_version }}-linux-x86_64.tar.gz"
     dest: "/tmp/logstash.tar.gz"

@@ -1,6 +1,6 @@
 # Add the following handler to roles/master_node/handlers/main.yml if not present:
 - name: Download Elasticsearch from S3
-  amazon.aws.amazon.aws.s3_object:
+  amazon.aws.s3_object:
     bucket: "{{ s3_binaries_bucket }}"
     object: "elasticsearch-{{ elasticsearch_version }}-linux-x86_64.tar.gz"
     dest: "/tmp/elasticsearch.tar.gz"
