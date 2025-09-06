@@ -27,7 +27,7 @@
     mode: '0755'
 
 - name: Download Elastic Agent archive
-  ansible.builtin. get_url:
+  ansible.builtin.get_url:
     url: "{{ elastic_agent_url }}"
     dest: "/tmp/{{ elastic_agent_tar }}"
     mode: '0644'
