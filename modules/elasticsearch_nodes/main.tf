@@ -36,13 +36,14 @@ locals {
     "rhel"          = "ami-rhel-8-latest"   # Replace with actual AMI ID
     "amazon-linux"  = "ami-0c55b159cbfafe1f0" # Amazon Linux 2
   }
+  # Ensure var.os_type is one of the above keys: "centos", "rhel", or "amazon-linux"
   instances = flatten([
     for role, details in local.node_types : [
       for i in range(details.config.count) : {
         key           = "${role}-${i}"
         role          = role
         instance_type = details.config.instance_type
-        az            = details.azs[i % length(details.azs)]
+        subnet_id     = var.subnet_ids[i % length(var.subnet_ids)]
         subnet_id     = element(var.subnet_ids, index(data.aws_availability_zones.available.names, details.azs[i % length(details.azs)]))
         root_size     = details.config.root_size
         elastic_size  = details.config.elastic_size

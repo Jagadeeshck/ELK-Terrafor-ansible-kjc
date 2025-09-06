@@ -51,7 +51,7 @@ resource "aws_lb_target_group_attachment" "targets" {
   ]) : item.key => item }
 
   target_group_arn = aws_lb_target_group.targets[each.value.role].arn
-  target_id        = each.value.instance.id
+  target_id        = each.value.instance
   port             = 9200
 }
 
@@ -66,7 +66,7 @@ resource "aws_lb_listener" "https" {
   default_action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.targets[each.key].arn
-  }
+      }
 }
 
 resource "aws_route53_record" "dns" {
