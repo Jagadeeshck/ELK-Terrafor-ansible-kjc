@@ -5,33 +5,28 @@
     object: "elasticsearch-{{ elasticsearch_version }}-linux-x86_64.tar.gz"
     dest: "/tmp/elasticsearch.tar.gz"
     mode: get
-
 - name: Ensure /opt/elastic directory exists
-  file:
+  ansible.builtin.file:
     path: /opt/elastic
     state: directory
     mode: '0755'
-
 - name: Extract Elasticsearch
   ansible.builtin.unarchive:
     src: "/tmp/elasticsearch.tar.gz"
     dest: "/opt/elastic"
     remote_src: yes
-
 - name: Configure Elasticsearch for ML Node
   ansible.builtin.template:
     src: elasticsearch.yml.j2
     dest: "/opt/elastic/elasticsearch-{{ elasticsearch_version }}/config/elasticsearch.yml"
     mode: '0644'
   notify: restart elasticsearch
-
 - name: Configure JVM options for ML Node
   ansible.builtin.template:
     src: jvm.options.j2
     dest: "/opt/elastic/elasticsearch-{{ elasticsearch_version }}/config/jvm.options"
     mode: '0644'
   notify: restart elasticsearch
-
 - name: Start Elasticsearch
   ansible.builtin.command: "/opt/elastic/elasticsearch-{{ elasticsearch_version }}/bin/elasticsearch -d"
   args:

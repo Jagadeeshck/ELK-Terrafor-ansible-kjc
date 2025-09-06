@@ -20,7 +20,7 @@
     mode: '0644'
   notify: restart logstash
 - name: Ensure Logstash service is started
-  systemd:
+  ansible.builtin.systemd:
     name: logstash
     state: started
     enabled: yes

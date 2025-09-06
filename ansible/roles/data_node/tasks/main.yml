@@ -7,7 +7,7 @@
     mode: get
 
 - name: Ensure /opt/elastic directory exists
-  file:
+  ansible.builtin.file:
     path: /opt/elastic
     state: directory
     mode: '0755'

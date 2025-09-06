@@ -33,7 +33,7 @@
   notify: restart elasticsearch
 
 - name: Register Snapshot Repository
-  uri:
+  ansible.builtin.uri:
     url: "http://localhost:9200/_snapshot/{{ cluster_name }}-snapshots"
     method: PUT
     body_format: json

@@ -8,11 +8,11 @@
 # - elastic_agent_install_dir: Directory where the agent will be installed (default "/opt/Elastic")
 
 - name: Include common role for Fleet nodes
-  import_role:
+  ansible.builtin.import_role:
     name: common
 
 - name: Set default values for fleet variables
-  set_fact:
+  ansible.builtin.set_fact:
     elastic_agent_version: "{{ elastic_agent_version | default('8.14.1') }}"
     elastic_agent_install_dir: "{{ elastic_agent_install_dir | default('/opt/Elastic') }}"
     fleet_manager_url: "{{ fleet_manager_url | default('https://fleet-manager.example.com:8220') }}"
@@ -21,13 +21,13 @@
     elastic_agent_url: "https://artifacts.elastic.co/downloads/beats/elastic-agent/{{ elastic_agent_tar }}"
 
 - name: Ensure installation directory exists
-  file:
+  ansible.builtin.file:
     path: "{{ elastic_agent_install_dir }}"
     state: directory
     mode: '0755'
 
 - name: Download Elastic Agent archive
-  get_url:
+  ansible.builtin. get_url:
     url: "{{ elastic_agent_url }}"
     dest: "/tmp/{{ elastic_agent_tar }}"
     mode: '0644'
@@ -46,6 +46,6 @@
     executable: /bin/bash
 
 - name: Remove downloaded archive
-  file:
+  ansible.builtin.file:
     path: "/tmp/{{ elastic_agent_tar }}"
     state: absent
