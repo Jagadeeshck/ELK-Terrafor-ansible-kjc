@@ -28,7 +28,6 @@
   become: true
   roles:
     - ml_node
-  when: "'role_ml' in group_names"
 
 - name: Configure Fleet Nodes
   hosts: role_fleet
@@ -41,11 +40,10 @@
   become: true
   roles:
     - apm_node
-  when: "'role_apm' in group_names"
 
 - name: Configure Logstash Nodes
   hosts: role_logstash
   become: true
   roles:
     - logstash_node
-  when: "'role_logstash' in group_names"
+
