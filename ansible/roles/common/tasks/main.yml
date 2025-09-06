@@ -9,23 +9,23 @@
     - java-11-openjdk
 
 - name: Create XFS filesystem on /opt/elastic volume
-  ansible.builtin. get_url:
+  ansible.builtin.get_url:
     fstype: xfs
     dev: /dev/xvdf
 
 - name: Create XFS filesystem on /opt/elastic/logs volume
-  ansible.builtin. get_url:
+  ansible.builtin.get_url:
     fstype: xfs
     dev: /dev/xvdg
 
 - name: Create XFS filesystem on /opt/elastic/data volume (EBS)
-  ansible.builtin. get_url:
+  ansible.builtin.get_url:
     fstype: xfs
     dev: /dev/xvdh
   when: "'nvme' not in ansible_devices"
 
 - name: Create XFS filesystem on /opt/elastic/data volume (Instance Store)
-  ansible.builtin. get_url:
+  ansible.builtin.get_url:
     fstype: xfs
     dev: /dev/nvme1n1
   when: "'nvme' in ansible_devices"
