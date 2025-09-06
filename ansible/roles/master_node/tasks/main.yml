@@ -1,4 +1,10 @@
----
+# Add the following handler to roles/master_node/handlers/main.yml if not present:
+- name: Download Elasticsearch from S3
+  amazon.aws.aws_s3:
+    bucket: "{{ s3_binaries_bucket }}"
+    object: "elasticsearch-{{ elasticsearch_version }}-linux-x86_64.tar.gz"
+    dest: "/tmp/elasticsearch.tar.gz"
+    mode: get
 - name: Download Elasticsearch from S3
   aws_s3:
     bucket: "{{ s3_binaries_bucket }}"
@@ -39,7 +45,9 @@
           "region": "{{ aws_region }}"
         }
       }
-    status_code: 200, 201
+    status_code:
+      - 200
+      - 201
   when: role == "master"
 
 - name: Start Elasticsearch

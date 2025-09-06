@@ -71,14 +71,14 @@
   when: "'nvme' in ansible_devices"
 
 - name: Download Elastic Agent from S3
-  aws_s3:
+  amazon.aws.aws_s3:
     bucket: "{{ s3_binaries_bucket }}"
     object: "elastic-agent-{{ elasticsearch_version }}-linux-x86_64.tar.gz"
     dest: "/tmp/elastic-agent.tar.gz"
     mode: get
 
 - name: Extract Elastic Agent
-  unarchive:
+  ansible.builtin.unarchive:
     src: "/tmp/elastic-agent.tar.gz"
     dest: "/opt/elastic"
-    remote_src: yes
+    remote_src: no

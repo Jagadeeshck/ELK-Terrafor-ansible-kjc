@@ -1,10 +1,11 @@
 ---
 - name: Download Logstash from S3
-  aws_s3:
+  amazon.aws.aws_s3:
     bucket: "{{ s3_binaries_bucket }}"
     object: "logstash-{{ elasticsearch_version }}-linux-x86_64.tar.gz"
     dest: "/tmp/logstash.tar.gz"
     mode: get
+  register: logstash_download
 
 - name: Extract Logstash
   unarchive:
@@ -18,8 +19,9 @@
     dest: "/opt/elastic/logstash-{{ elasticsearch_version }}/config/logstash.yml"
     mode: '0644'
   notify: restart logstash
-
-- name: Start Logstash
-  command: "/opt/elastic/logstash-{{ elasticsearch_version }}/bin/logstash -f /opt/elastic/logstash-{{ elasticsearch_version }}/config/logstash.yml &"
-  args:
+- name: Ensure Logstash service is started
+  systemd:
+    name: logstash
+    state: started
+    enabled: yes
     creates: "/opt/elastic/logstash-{{ elasticsearch_version }}/logs/logstash.log"

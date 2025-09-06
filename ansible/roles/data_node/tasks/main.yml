@@ -6,10 +6,16 @@
     dest: "/tmp/elasticsearch.tar.gz"
     mode: get
 
+- name: Ensure /opt/elastic directory exists
+  file:
+    path: /opt/elastic
+    state: directory
+    mode: '0755'
+
 - name: Extract Elasticsearch
   unarchive:
     src: "/tmp/elasticsearch.tar.gz"
-    dest: "/opt/elastic"
+    dest: "/opt/elastic/elasticsearch-{{ elasticsearch_version }}"
     remote_src: yes
 
 - name: Configure Elasticsearch for Data Node

@@ -41,13 +41,7 @@
   when: download_result.changed
 
 - name: Install Elastic Agent
-  shell: >
-    echo "Y" |
-    {{ elastic_agent_install_dir }}/elastic-agent-{{ elastic_agent_version }}-linux-x86_64/elastic-agent
-    install
-    --url={{ fleet_manager_url }}
-    --enrollment-token={{ fleet_enrollment_token }}
-    --force
+  shell: "echo \"Y\" | {{ elastic_agent_install_dir }}/elastic-agent-{{ elastic_agent_version }}-linux-x86_64/elastic-agent install --url={{ fleet_manager_url }} --enrollment-token={{ fleet_enrollment_token }} --force"
   args:
     executable: /bin/bash
 
