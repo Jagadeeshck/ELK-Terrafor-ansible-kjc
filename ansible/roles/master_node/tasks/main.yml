@@ -1,32 +1,32 @@
 # Add the following handler to roles/master_node/handlers/main.yml if not present:
 - name: Download Elasticsearch from S3
-  amazon.aws.aws_s3:
+  amazon.aws.amazon.aws.s3_object:
     bucket: "{{ s3_binaries_bucket }}"
     object: "elasticsearch-{{ elasticsearch_version }}-linux-x86_64.tar.gz"
     dest: "/tmp/elasticsearch.tar.gz"
     mode: get
 - name: Download Elasticsearch from S3
-  aws_s3:
+  amazon.aws.s3_object:
     bucket: "{{ s3_binaries_bucket }}"
     object: "elasticsearch-{{ elasticsearch_version }}-linux-x86_64.tar.gz"
     dest: "/tmp/elasticsearch.tar.gz"
     mode: get
 
 - name: Extract Elasticsearch
-  unarchive:
+  ansible.builtin.unarchive:
     src: "/tmp/elasticsearch.tar.gz"
     dest: "/opt/elastic"
     remote_src: yes
 
 - name: Configure Elasticsearch for Master Node
-  template:
+  ansible.builtin.template:
     src: elasticsearch.yml.j2
     dest: "/opt/elastic/elasticsearch-{{ elasticsearch_version }}/config/elasticsearch.yml"
     mode: '0644'
   notify: restart elasticsearch
 
 - name: Configure JVM options for Master Node
-  template:
+  ansible.builtin.template:
     src: jvm.options.j2
     dest: "/opt/elastic/elasticsearch-{{ elasticsearch_version }}/config/jvm.options"
     mode: '0644'
@@ -51,6 +51,6 @@
   when: role == "master"
 
 - name: Start Elasticsearch
-  command: "/opt/elastic/elasticsearch-{{ elasticsearch_version }}/bin/elasticsearch -d"
+  ansible.builtin.command: "/opt/elastic/elasticsearch-{{ elasticsearch_version }}/bin/elasticsearch -d"
   args:
     creates: "/opt/elastic/logs/{{ cluster_name }}.log"

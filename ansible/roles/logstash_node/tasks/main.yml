@@ -1,6 +1,6 @@
 ---
 - name: Download Logstash from S3
-  amazon.aws.aws_s3:
+  amazon.aws.amazon.aws.s3_object:
     bucket: "{{ s3_binaries_bucket }}"
     object: "logstash-{{ elasticsearch_version }}-linux-x86_64.tar.gz"
     dest: "/tmp/logstash.tar.gz"
@@ -8,13 +8,13 @@
   register: logstash_download
 
 - name: Extract Logstash
-  unarchive:
+  ansible.builtin.unarchive:
     src: "/tmp/logstash.tar.gz"
     dest: "/opt/elastic"
     remote_src: yes
 
 - name: Configure Logstash
-  template:
+  ansible.builtin.template:
     src: logstash.yml.j2
     dest: "/opt/elastic/logstash-{{ elasticsearch_version }}/config/logstash.yml"
     mode: '0644'

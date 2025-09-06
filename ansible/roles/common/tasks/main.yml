@@ -1,6 +1,6 @@
 ---
 - name: Ensure filesystem dependencies are installed
-  package:
+  ansible.builtin.package:
     name: "{{ item }}"
     state: present
   loop:
@@ -9,23 +9,23 @@
     - java-11-openjdk
 
 - name: Create XFS filesystem on /opt/elastic volume
-  filesystem:
+  ansible.builtin.get_url:
     fstype: xfs
     dev: /dev/xvdf
 
 - name: Create XFS filesystem on /opt/elastic/logs volume
-  filesystem:
+  ansible.builtin.get_url:
     fstype: xfs
     dev: /dev/xvdg
 
 - name: Create XFS filesystem on /opt/elastic/data volume (EBS)
-  filesystem:
+  ansible.builtin.get_url:
     fstype: xfs
     dev: /dev/xvdh
   when: "'nvme' not in ansible_devices"
 
 - name: Create XFS filesystem on /opt/elastic/data volume (Instance Store)
-  filesystem:
+  ansible.builtin.get_url:
     fstype: xfs
     dev: /dev/nvme1n1
   when: "'nvme' in ansible_devices"
@@ -41,21 +41,21 @@
     - /opt/elastic/data
 
 - name: Mount /opt/elastic volume
-  mount:
+  ansible.posix.mount:
     path: /opt/elastic
     src: /dev/xvdf
     fstype: xfs
     state: mounted
 
 - name: Mount /opt/elastic/logs volume
-  mount:
+  ansible.posix.mount:
     path: /opt/elastic/logs
     src: /dev/xvdg
     fstype: xfs
     state: mounted
 
 - name: Mount /opt/elastic/data volume (EBS)
-  mount:
+  ansible.posix.mount:
     path: /opt/elastic/data
     src: /dev/xvdh
     fstype: xfs
@@ -63,7 +63,7 @@
   when: "'nvme' not in ansible_devices"
 
 - name: Mount /opt/elastic/data volume (Instance Store)
-  mount:
+  ansible.posix.mount:
     path: /opt/elastic/data
     src: /dev/nvme1n1
     fstype: xfs
@@ -71,14 +71,14 @@
   when: "'nvme' in ansible_devices"
 
 - name: Download Elastic Agent from S3
-  amazon.aws.aws_s3:
+  amazon.aws.amazon.aws.s3_object:
     bucket: "{{ s3_binaries_bucket }}"
     object: "elastic-agent-{{ elasticsearch_version }}-linux-x86_64.tar.gz"
     dest: "/tmp/elastic-agent.tar.gz"
     mode: get
 
 - name: Extract Elastic Agent
-  ansible.builtin.unarchive:
+  ansible.builtin.ansible.builtin.unarchive:
     src: "/tmp/elastic-agent.tar.gz"
     dest: "/opt/elastic"
     remote_src: no

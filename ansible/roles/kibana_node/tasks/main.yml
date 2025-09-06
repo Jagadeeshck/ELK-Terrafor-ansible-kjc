@@ -1,25 +1,25 @@
 ---
 - name: Download Kibana from S3
-  amazon.aws.aws_s3:
+  amazon.aws.amazon.aws.s3_object:
     bucket: "{{ s3_binaries_bucket }}"
     object: "kibana-{{ elasticsearch_version }}-linux-x86_64.tar.gz"
     dest: "/tmp/kibana.tar.gz"
     mode: get
 
 - name: Extract Kibana
-  unarchive:
+  ansible.builtin.unarchive:
     src: "/tmp/kibana.tar.gz"
     dest: "/opt/elastic"
     remote_src: yes
 
 - name: Configure Kibana
-  template:
+  ansible.builtin.template:
     src: kibana.yml.j2
     dest: "/opt/elastic/kibana-{{ elasticsearch_version }}-linux-x86_64/config/kibana.yml"
     mode: '0644'
   notify: restart kibana
 
 - name: Start Kibana
-  command: "/opt/elastic/kibana-{{ elasticsearch_version }}-linux-x86_64/bin/kibana --allow-root &"
+  ansible.builtin.command: "/opt/elastic/kibana-{{ elasticsearch_version }}-linux-x86_64/bin/kibana --allow-root &"
   args:
     creates: "/opt/elastic/kibana-{{ elasticsearch_version }}-linux-x86_64/logs/kibana.log"
